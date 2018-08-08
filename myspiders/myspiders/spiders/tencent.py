@@ -2,6 +2,7 @@
 import scrapy
 from myspiders.items import MyspidersItem
 
+
 class TencentSpider(scrapy.Spider):
     name = 'tencent'
     allowed_domains = ['hr.tencent.com']
@@ -20,9 +21,17 @@ class TencentSpider(scrapy.Spider):
             item['address'] = node.xpath('./td[4]/text()').extract()[0]
             item['pub_date'] = node.xpath('./td[5]/text()').extract()[0]
 
-            yield item
+            yield scrapy.Request(url=item['link'], callback=self.parse_detail, meta={'key': item})
 
         # 翻页
-        next_url = 'https://hr.tencent.com/' + response.xpath('//*[@id="next"]/@href').extract()[0]
-        # 将下一页的url返回给也引擎，并相应的回调函数
-        yield scrapy.Request(url=next_url, callback=self.parse)
+        next_url = response.xpath('//*[@id="next"]/@href').extract_first()
+        if next_url is not None:
+            next_url = 'https://hr.tencent.com/' + next_url
+            yield scrapy.Request(url=next_url, callback=self.parse)
+
+    # 爬取工作职责和工作要求并一起返回给引擎
+    def parse_detail(self, response):
+        item = response.meta().get('key')
+        item['job_duty'] = ''.join(response.xpath('//tr[3]/td/ul/li/text()').extract())
+        item['job_requirmen'] = ''.join(response.xpath('//tr[4]/td/ul/li/text()').extract())
+        yield item

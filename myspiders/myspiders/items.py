@@ -17,8 +17,10 @@ class MyspidersItem(scrapy.Item):
     num = scrapy.Field()
     address = scrapy.Field()
     pub_date = scrapy.Field()
+    job_duty = scrapy.Field()
+    job_requirment = scrapy.Field()
     pass
-    # 通过对象来保存数据
+
 
 
 
